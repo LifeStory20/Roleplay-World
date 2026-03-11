@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Tang Dynasty Map</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Sarabun', sans-serif; }
+        #map { height: 100vh; width: 100%; } /* ให้แผนที่เต็มหน้าจอ */
+        .info-box { font-size: 14px; line-height: 1.6; }
+        h2 { margin-top: 0; color: #8B0000; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // 1. ตั้งค่าเริ่มต้นของแผนที่ (พิกัดกลางแถวจีน และระดับการซูม)
+        var map = L.map('map').setView([34.2658, 108.9442], 5);
+
+        // 2. ดึงภาพแผนที่พื้นฐาน (ใช้สไตล์แบบโบราณหรือเรียบๆ)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // 3. ข้อมูลเมืองต่างๆ ในสมัยราชวงศ์ถัง
+        var cities = [
+            {
+                name: "ฉางอัน (Chang'an)",
+                coords: [34.2658, 108.9442],
+                desc: "<b>เมืองหลวงหลัก:</b> เป็นศูนย์กลางความเจริญของเส้นทางสายไหม และเป็นเมืองที่ใหญ่ที่สุดในโลกในขณะนั้น"
+            },
+            {
+                name: "ลั่วหยาง (Luoyang)",
+                coords: [34.6197, 112.4545],
+                desc: "<b>เมืองหลวงตะวันออก:</b> ศูนย์กลางการค้าและการขนส่งทางน้ำที่สำคัญ"
+            },
+            {
+                name: "ตุนหวง (Dunhuang)",
+                coords: [40.1421, 94.6620],
+                desc: "<b>ประตูสู่ตะวันตก:</b> จุดพักสำคัญบนเส้นทางสายไหมและเป็นแหล่งประดิษฐานถ้ำม็อกโก"
+            },
+            {
+                name: "กวางโจว (Guangzhou)",
+                coords: [23.1291, 113.2644],
+                desc: "<b>เมืองท่าทางใต้:</b> จุดเชื่อมต่อการค้าทางทะเลกับโลกอาหรับและเอเชียตะวันออกเฉียงใต้"
+            }
+        ];
+
+        // 4. วนลูปสร้างหมุด (Markers) บนแผนที่
+        cities.forEach(function(city) {
+            var marker = L.marker(city.coords).addTo(map);
+            
+            // เมื่อคลิกที่หมุดจะขึ้นรายละเอียด
+            marker.bindPopup(`
+                <div class="info-box">
+                    <h2>${city.name}</h2>
+                    <p>${city.desc}</p>
+                </div>
+            `);
+        });
+
+        // (Option) ใส่พื้นที่ขอบเขตคร่าวๆ ของอาณาจักร (วงกลมสมมติ)
+        var tangBoundary = L.circle([34, 108], {
+            color: 'red',
+            fillColor: '#f03',
+            fillOpacity: 0.1,
+            radius: 1500000 // รัศมีโดยประมาณ
+        }).addTo(map);
+        tangBoundary.bindTooltip("ขอบเขตโดยประมาณของอาณาจักรราชวงศ์ถัง");
+
+    </script>
+</body>
+</html>
