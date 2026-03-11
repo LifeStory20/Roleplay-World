@@ -3,38 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Tang Dynasty Map</title>
+    <title>Roleplay Community - East Asia Map</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;500&display=swap" rel="stylesheet">
     
     <style>
-        body { margin: 0; padding: 0; font-family: 'Sarabun', sans-serif; }
-        #map { height: 100vh; width: 100%; } /* ให้แผนที่เต็มหน้าจอ */
-        .info-box { font-size: 14px; line-height: 1.6; }
-        h2 { margin-top: 0; color: #8B0000; }
+        html, body { height: 100%; margin: 0; padding: 0; background-color: #fcfaf2; }
+        #map { height: 100%; width: 100%; }
+
+        /* ปรับแต่งกล่อง Popup ให้ดูมีความเป็นจีนการ์ตูน */
+        .leaflet-popup-content-wrapper {
+            background: #fffef5;
+            color: #4a4a4a;
+            border: 2px solid #8B0000; /* ขอบแดง */
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .leaflet-popup-tip { background: #8B0000; }
+
+        .info-box { 
+            padding: 5px;
+            font-family: 'Sarabun', sans-serif;
+        }
+        .info-box h2 { 
+            margin: 0; 
+            color: #8B0000; 
+            font-size: 20px; 
+            border-bottom: 2px solid #d4af37; /* เส้นใต้สีทอง */
+            padding-bottom: 5px;
+            margin-bottom: 8px;
+        }
+        .info-box p { font-size: 14px; margin: 0; line-height: 1.6; }
+
+        /* แถบหัวข้อด้านบน */
+        .map-header {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(139, 0, 0, 0.9);
+            color: #d4af37;
+            padding: 10px 25px;
+            border-radius: 50px;
+            border: 2px solid #d4af37;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            pointer-events: none;
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
 
+    <div class="map-header">ยุทธภพ : บทบาทสมมติเอเชียตะวันออก</div>
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
-        // 1. ตั้งค่าเริ่มต้นของแผนที่ (พิกัดกลางแถวจีน และระดับการซูม)
-        var map = L.map('map').setView([34.2658, 108.9442], 5);
+        // ตั้งค่าพิกัดให้เน้นเอเชียตะวันออก (จีน, ญี่ปุ่น, เกาหลี)
+        // [Lat, Lon], Zoom Level
+        var map = L.map('map', {
+            center: [34.0, 115.0],
+            zoom: 5,
+            minZoom: 4,
+            maxZoom: 8
+        });
 
-        // 2. ดึงภาพแผนที่พื้นฐาน (ใช้สไตล์แบบโบราณหรือเรียบๆ)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
+        // ใช้แผนที่สไตล์การ์ตูน/สะอาด (CartoDB Positron)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; RP Community Map'
         }).addTo(map);
 
-        // 3. ข้อมูลเมืองต่างๆ ในสมัยราชวงศ์ถัง
-        var cities = [
+        // จุดพิกัดสำคัญสำหรับโรลเพลย์
+        var rpPoints = [
             {
-                name: "ฉางอัน (Chang'an)",
+                name: "📍 เมืองหลวงจันทรา",
                 coords: [34.2658, 108.9442],
-                desc: "<b>เมืองหลวงหลัก:</b> เป็นศูนย์กลางความเจริญของเส้นทางสายไหม และเป็นเมืองที่ใหญ่ที่สุดในโลกในขณะนั้น"
+                desc: "ศูนย์กลางการปกครองที่รุ่งเรืองที่สุด มีโรงน้ำชาที่เป็นจุดนัดพบสำคัญ"
+            },
+            {
+                name: "🌸 สำนักร้อยบุปผา",
+                coords: [34.6197, 112.4545],
+                desc: "สำนักฝ่ายธรรมะที่ตั้งอยู่ท่ามกลางหุบเขาและมวลดอกไม้"
+            },
+            {
+                name: "⛰️ ยอดเขาไร้เมฆ",
+                coords: [36.2550, 117.1000],
+                desc: "ที่พำนักของเหล่ายอดฝีมือและเซียนที่ปลีกวิเวก"
+            },
+            {
+                name: "⚓ ท่าเรือมังกรสมุทร",
+                coords: [31.2304, 121.4737],
+                desc: "ตลาดการค้าทางเรือที่คึกคักที่สุดในแดนตะวันออก"
+            }
+        ];
+
+        // สร้างหมุดแบบสวยๆ
+        rpPoints.forEach(function(point) {
+            var marker = L.marker(point.coords).addTo(map);
+            marker.bindPopup(`
+                <div class="info-box">
+                    <h2>${point.name}</h2>
+                    <p>${point.desc}</p>
+                </div>
+            `);
+        });
+
+        // ใส่ขอบเขตสีจางๆ ให้ดูเป็นพื้นที่ศักดิ์สิทธิ์
+        var area = L.circle([34.5, 110], {
+            color: '#d4af37',
+            fillColor: '#d4af37',
+            fillOpacity: 0.05,
+            radius: 1200000 
+        }).addTo(map);
+
+    </script>
+</body>
+</html>                desc: "<b>เมืองหลวงหลัก:</b> เป็นศูนย์กลางความเจริญของเส้นทางสายไหม และเป็นเมืองที่ใหญ่ที่สุดในโลกในขณะนั้น"
             },
             {
                 name: "ลั่วหยาง (Luoyang)",
